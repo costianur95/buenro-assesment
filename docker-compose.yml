@@ -1,0 +1,44 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: buenro-mongodb
+    restart: unless-stopped
+    environment:
+      # the credentials shoudn't be in plain but for a demo is fine
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: buenro
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - buenro-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: buenro-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+       # the credentials shoudn't be in plain but for a demo is fine
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/buenro?authSource=admin
+    depends_on:
+      - mongodb
+    networks:
+      - buenro-network
+
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+
+networks:
+  buenro-network:
+    driver: bridge
